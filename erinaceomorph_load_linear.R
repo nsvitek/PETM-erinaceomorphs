@@ -38,7 +38,7 @@ c.data$cant<-cbind(c.data$angle_canting1,c.data$angle_canting2,c.data$angle_cant
 c.data$heights<-c.data$tri.h/c.data$tal.h
 c.data$ic.me.l<-c.data$ic.me/c.data$length
 c.data$met.l.l<-c.data$met.l/c.data$length
-# c.data$met.w.l<-c.data$met.w/c.data$length
+c.data$met.w.l<-c.data$met.w/c.data$length
 c.data$ic.hh.l<-c.data$ic.hh/c.data$length
 c.data$tri.w.l<-c.data$tri.w/c.data$length
 c.data$tal.w.l<-c.data$tal.w/c.data$length
@@ -77,51 +77,16 @@ colnames(c.data)[which(colnames(c.data)=="Meter.Level")]<-"meter_level"
 
 #try bins again
 c.data<-binsBHB(c.data, c.data$meter_level)
-
-#simplify to biozone
-c.data$bin3<-NA
-c.data$bin3[which(c.data$bin2=="Wa-M")]<-"Wa-M" 
-c.data$bin3[which(c.data$bin2=="Wa-1")]<-"Wa-1"
-c.data$bin3[which(c.data$bin2=="Wa-2")]<-"Wa-2"
-c.data$bin3[which(c.data$bin2=="Cf-3")]<-"Cf-3"
-
-c.data$bin3[which(c.data$bin2=="Wa-0 1"|c.data$bin2=="Wa-0 2"|
-                      c.data$bin2=="Wa-0 3")]<-"Wa-0" 
-c.data$bin3<-factor(c.data$bin3,levels=c("Cf-3","Wa-M","Wa-0","Wa-1","Wa-2"))
-
-
-#simplify relative to PETM
-c.data$bin4<-NA
-c.data$bin4[which(c.data$bin3=="Wa-1"|c.data$bin4=="Wa-2")]<-"post-CIE" 
-c.data$bin4[which(c.data$bin3=="Cf-3")]<-"pre-CIE" 
-c.data$bin4[which(c.data$bin3=="Wa-M"|c.data$bin3=="Wa-0")]<-"CIE" 
-c.data$bin4<-factor(c.data$bin4,levels=c("pre-CIE","CIE","post-CIE"))
+c.data<-bins.forMS(c.data)
+c.data<-binsMinimal(c.data)
 
 # same for m1 data -------
 #do some quick renames to ease plotting
 colnames(m1.measures)[which(colnames(m1.measures)=="Meter.Level")]<-"meter_level"
 
-#try bins again
+#binning
 m1.measures<-binsBHB(m1.measures, m1.measures$meter_level)
+m1.measures<-bins.forMS(m1.measures)
+m1.measures<-binsMinimal(m1.measures)
 
-#simplify to biozone
-m1.measures$bin3<-NA
-m1.measures$bin3[which(m1.measures$bin2=="Wa-M")]<-"Wa-M" 
-m1.measures$bin3[which(m1.measures$bin2=="Wa-1")]<-"Wa-1"
-m1.measures$bin3[which(m1.measures$bin2=="Wa-2")]<-"Wa-2"
-m1.measures$bin3[which(m1.measures$bin2=="Cf-3")]<-"Cf-3"
-
-m1.measures$bin3[which(m1.measures$bin2=="Wa-0 1"|m1.measures$bin2=="Wa-0 2"|
-                    m1.measures$bin2=="Wa-0 3")]<-"Wa-0" 
-m1.measures$bin3<-factor(m1.measures$bin3,levels=c("Cf-3","Wa-M","Wa-0","Wa-1","Wa-2"))
-
-
-#simplify relative to PETM
-m1.measures$bin4<-NA
-m1.measures$bin4[which(m1.measures$bin3=="Wa-1"|m1.measures$bin3=="Wa-2")]<-"post-CIE" 
-m1.measures$bin4[which(m1.measures$bin3=="Cf-3")]<-"pre-CIE" 
-m1.measures$bin4[which(m1.measures$bin3=="Wa-M"|m1.measures$bin3=="Wa-0")]<-"CIE" 
-m1.measures$bin4<-factor(m1.measures$bin4,levels=c("pre-CIE","CIE","post-CIE"))
-
-#
 warnings()

@@ -22,3 +22,4 @@ binsBHB<-function(dataframe,meter_level){
   
 binmean<-c(mean(c(0.1,5)),mean(c(5,14.45)),mean(c(14.45,25)),
            mean(c(25,41)),mean(c(41,46)),mean(c(46,60)),mean(c(60,75)))
+

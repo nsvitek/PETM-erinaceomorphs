@@ -9,11 +9,12 @@ taxon<-"Colpocherus"
 
 # source dependencies -----
 #set file locations
-scriptsdir <- "C://cygwin/home/N.S/scripts/scripts"
-# datadir <- "D:/Dropbox/Documents/Dissertation/sys_eulipotyphla/lineage_data"
-datadir <- "C:/Users/N.S/Dropbox/Documents/Dissertation/sys_eulipotyphla/lineage_data"
+scriptsdir <- "C://scripts"
+# scriptsdir <- "C://cygwin/home/N.S/scripts/scripts"
+datadir <- "D:/Dropbox/Documents/Dissertation/sys_eulipotyphla/lineage_data"
+# datadir <- "C:/Users/N.S/Dropbox/Documents/Dissertation/sys_eulipotyphla/lineage_data"
 
-source(paste(scriptsdir,"/BHB-erinaceomorph/erinaceomorph_dependencies.R",sep=""))
+source(paste(scriptsdir,"/PETM-erinaceomorphs/erinaceomorph_dependencies.R",sep=""))
 
 # read shape data -----
 if (taxon=="Macrocranion"){
@@ -34,10 +35,10 @@ CS<-molars$cs
 # #this code only needs to be run once at the start of project analysis.
 # freeze<-ls() #take a snapshop of objects in environment
 # #create cropped surfaces for downstream analysis
-# source(paste(scriptsdir,"/BHB-erinaceomorph/erinaceomorph_recrop_ply.R",sep=""))
+# source(paste(scriptsdir,"/PETM-erinaceomorphs/erinaceomorph_recrop_ply.R",sep=""))
 # rm(list = setdiff(ls(),freeze)) #clean up environment, also removes freeze
 # #calculate dental metrics for downstream analysis
-# source(paste(scriptsdir,"/BHB-erinaceomorph/erinaceomorph_dental_calcs.R",sep=""))
+# source(paste(scriptsdir,"/PETM-erinaceomorphs/erinaceomorph_dental_calcs.R",sep=""))
 
 # read data ----
 #set repeat values. Number of specimens used, r, is in [taxon]_data.R
@@ -46,13 +47,13 @@ r_c<-3 #number of re-crops
 tooth<-c("M/2","M/2*")
 
 if (taxon=="Macrocranion"){
-  source(paste(scriptsdir,"/BHB-erinaceomorph/macrocranion_data.R",sep=""))
+  source(paste(scriptsdir,"/PETM-erinaceomorphs/macrocranion_data.R",sep=""))
 }
 if (taxon=="Talpavoides"){
-  source(paste(scriptsdir,"/BHB-erinaceomorph/talpavoides_data.R",sep=""))
+  source(paste(scriptsdir,"/PETM-erinaceomorphs/talpavoides_data.R",sep=""))
 }
 if (taxon=="Colpocherus"){
-  source(paste(scriptsdir,"/BHB-erinaceomorph/colpocherus_data.R",sep=""))
+  source(paste(scriptsdir,"/PETM-erinaceomorphs/colpocherus_data.R",sep=""))
 }
 
 #make datasets of unique specimen shapes
@@ -66,7 +67,7 @@ shapes<-molars$m2d[critter_id,]
 # # error -----
 # freeze<-ls() #take a snapshop of objects in environment
 # setwd(paste(datadir,"/output/results_error",sep="")) #move to folder for keeping error-related results
-# source(paste(scriptsdir,"/BHB-erinaceomorph/erinaceomorph_error.R",sep=""))
+# source(paste(scriptsdir,"/PETM-erinaceomorphs/erinaceomorph_error.R",sep=""))
 # #a high amount of error due to cropping. Address.
 # rm(list = setdiff(ls(),freeze)) #clean up environment, also removes freeze
 # setwd("../")
@@ -124,25 +125,10 @@ if (taxon=="Macrocranion"){PCs<-c(1:4)}
 if (taxon=="Talpavoides"){PCs<-c(1:3)}
 if (taxon=="Colpocherus"){PCs<-c(1:3)}
 
-#try bins again
+#set bins, with both single and multiple PETM bin(s)
 critters<-binsBHB(critters, critters$meter_level)
-
-#simplify to biozone
-critters$bin3<-NA
-critters$bin3[which(critters$bin2=="Wa-M")]<-"Wa-M"
-critters$bin3[which(critters$bin2=="Wa-1")]<-"Wa-1"
-critters$bin3[which(critters$bin2=="Wa-2")]<-"Wa-2"
-critters$bin3[which(critters$bin2=="Cf-3")]<-"Cf-3"
-critters$bin3[which(critters$bin2=="Wa-0 1"|critters$bin2=="Wa-0 2"|
-                      critters$bin2=="Wa-0 3")]<-"Wa-0"
-critters$bin3<-factor(critters$bin3,levels=c("Cf-3","Wa-M","Wa-0","Wa-1","Wa-2"))
-
-#simplify relative to PETM
-critters$bin4<-NA
-critters$bin4[which(critters$bin3=="Wa-1"|critters$bin3=="Wa-2")]<-"post-CIE"
-critters$bin4[which(critters$bin3=="Cf-3")]<-"pre-CIE"
-critters$bin4[which(critters$bin3=="Wa-M"|critters$bin3=="Wa-0")]<-"CIE"
-critters$bin4<-factor(critters$bin4,levels=c("pre-CIE","CIE","post-CIE"))
+critters<-bins.forMS(critters)
+critters<-binsMinimal(critters)
 
 #simplify tooth position information
 critters$posthoc_pos[which(critters$posthoc_pos=="M/1*")]<-"M/1"
@@ -166,7 +152,7 @@ figure_out<-paste(datadir,"/output/",taxon,"_",pos,"_",sep="")
 # plot 3D metrics ----------
 #Centroid Size
 plot_linear(dataset=md,variable="lncs",
-            x_label="ln(Centroid Size)",colors=bin.col,
+            x_label="ln(Centroid Size)",colors=bin.colMS,
             o18curve=TRUE)
 #one way to save for publication
 # cairo_pdf(paste(figure_out,"lncs.pdf",sep=""),width=10,height=10,family="Franklin Gothic Book")
@@ -214,11 +200,6 @@ if(position == "M/2"){
   warnings()
 }
 
-
-#looking for mistakes. Remove when dataset is clean
-# md$specimen_number[which(md$RFI2<=.505)]
-# c.data$Field.Number[which(c.data$lnlxw>=0.5)]
-
 # # correlate area to centroid size ----
 # if(position=="M/1"){
 #   for(row in 1:nrow(m1.measures)){
@@ -257,19 +238,17 @@ if(position == "M/2"){
 
 # stats settings -----
 replicates<-1000
-minN<-2 #minimum number of samples necessary to compare a bin
+minN<-1 #minimum number of samples necessary to compare a bin
 #make combinations of bins
 biostrat2<-levels(c.data$bin2) %>% combn(.,2)
-biostrat3<-levels(c.data$bin3) %>% combn(.,2)
-biostrat4<-levels(c.data$bin4) %>% combn(.,2)
+biostrat3<-levels(c.data$binMS) %>% combn(.,2)
+biostrat4<-levels(c.data$binMin) %>% combn(.,2)
 
 if (taxon=="Macrocranion"){
   #variables to test
   factors1<-c("cant","lnlxw","heights","tri.w.l")
   factors2<-c("lncs","RFI2","DNE2")
-  #remove potential outliers
-  #USNM538323.2 acts as outlier for DNE
-  #CAB13-0775 acts as outlier for Slope2
+  #remove unsuitable specimens: USNM538323.2 for DNE
   md.stat<-md
   md.stat$DNE[which(md$specimen_number=="USNM538323.2")]<-NA
 
@@ -278,7 +257,6 @@ if (taxon=="Talpavoides"){
   factors1<-c("lnlxw","tal.w.l","tri.h.l","ic.hh.l",
               "met.w.tri","ento.l.l","cant")
   factors2<-c("lncs","RFI2","DNE2")
-  #any outliers? No.
   md.stat<-md
 } 
 if (taxon=="Colpocherus"){
@@ -287,9 +265,9 @@ if (taxon=="Colpocherus"){
   #any outliers?
   #CAB14-0668, UF284224 in RFI, CAB14-1021 weirdly low DNE
   md.stat<-md
-  md.stat$RFI2[which(md$specimen_number=="CAB14-0668")]<-NA
-  md.stat$RFI2[which(md$specimen_number=="UF284224")]<-NA
-  md.stat$DNE[which(md$specimen_number=="CAB14-1021")]<-NA
+  # md.stat$RFI2[which(md$specimen_number=="CAB14-0668")]<-NA
+  # md.stat$RFI2[which(md$specimen_number=="UF284224")]<-NA
+  # md.stat$DNE[which(md$specimen_number=="CAB14-1021")]<-NA
 }
 
 # stats: fine ------
@@ -346,8 +324,6 @@ for (zone in 1:ncol(test2_3)){
 
 test2m2<-rbind(test2_1,test2_2)
 test2m1<-rbind(test2_2,test2_3)
-
-
 # stats: medium ------
 #test for pairwise differences in crown area by bin
 test3_1<-matrix(NA,nrow=length(factors1),ncol=ncol(biostrat3))
@@ -356,12 +332,12 @@ colnames(test3_1)<-paste(biostrat3[1,],"vs",biostrat3[2,])
 
 for (rows in 1:nrow(test3_1)){
   for (zone in 1:ncol(test3_1)){
-    if(with(c.data,eval(as.name(factors1[rows]))[which(bin3==biostrat3[1,zone])] %>% length) < minN|
-       with(c.data,eval(as.name(factors1[rows]))[which(bin3==biostrat3[2,zone])] %>% length) < minN){
+    if(with(c.data,eval(as.name(factors1[rows]))[which(binMS==biostrat3[1,zone])] %>% length) < minN|
+       with(c.data,eval(as.name(factors1[rows]))[which(binMS==biostrat3[2,zone])] %>% length) < minN){
       test3_1[rows,zone]<-NA #if sample sizes are too small, skip
     } else {
-      test3_1[rows,zone]<-with(c.data,bootstrap(eval(as.name(factors1[rows]))[which(bin3==biostrat3[1,zone])],
-                                                eval(as.name(factors1[rows]))[which(bin3==biostrat3[2,zone])],
+      test3_1[rows,zone]<-with(c.data,bootstrap(eval(as.name(factors1[rows]))[which(binMS==biostrat3[1,zone])],
+                                                eval(as.name(factors1[rows]))[which(binMS==biostrat3[2,zone])],
                                                 metric="meandiff",replicates=replicates)$probability)
       #the "eval(as.name("string")) comes from stackoverflow. Don't completely understand.
     }
@@ -374,12 +350,12 @@ colnames(test3_2)<-paste(biostrat3[1,],"vs",biostrat3[2,])
 
 for (rows in 1:nrow(test3_2)){
   for (zone in 1:ncol(test3_2)){
-    if(with(md.stat,eval(as.name(factors2[rows]))[which(bin3==biostrat3[1,zone])] %>% length) < minN|
-       with(md.stat,eval(as.name(factors2[rows]))[which(bin3==biostrat3[2,zone])] %>% length) < minN){
+    if(with(md.stat,eval(as.name(factors2[rows]))[which(binMS==biostrat3[1,zone])] %>% length) < minN|
+       with(md.stat,eval(as.name(factors2[rows]))[which(binMS==biostrat3[2,zone])] %>% length) < minN){
       test3_2[rows,zone]<-NA #if sample sizes are too small, skip
     } else {
-      test3_2[rows,zone]<-with(md.stat,bootstrap(eval(as.name(factors2[rows]))[which(bin3==biostrat3[1,zone])],
-                                            eval(as.name(factors2[rows]))[which(bin3==biostrat3[2,zone])],
+      test3_2[rows,zone]<-with(md.stat,bootstrap(eval(as.name(factors2[rows]))[which(binMS==biostrat3[1,zone])],
+                                            eval(as.name(factors2[rows]))[which(binMS==biostrat3[2,zone])],
                                             metric="meandiff",replicates=replicates)$probability)
       #the "eval(as.name("string")) comes from stackoverflow. Don't completely understand.
     }
@@ -390,12 +366,12 @@ test3_3<-matrix(NA,nrow=1,ncol=ncol(biostrat3))
 rownames(test3_3)<-"m1.lnlxw"
 colnames(test3_3)<-paste(biostrat3[1,],"vs",biostrat3[2,])
 for (zone in 1:ncol(test3_3)){
-  if(with(m1.measures,eval(as.name("lnlxw"))[which(bin3==biostrat3[1,zone])] %>% length) < minN|
-     with(m1.measures,eval(as.name("lnlxw"))[which(bin3==biostrat3[2,zone])] %>% length) < minN){
+  if(with(m1.measures,eval(as.name("lnlxw"))[which(binMS==biostrat3[1,zone])] %>% length) < minN|
+     with(m1.measures,eval(as.name("lnlxw"))[which(binMS==biostrat3[2,zone])] %>% length) < minN){
     test3_3[1,zone]<-NA #if sample sizes are too small, skip
   } else {
-    test3_3[1,zone]<-with(m1.measures,bootstrap(eval(as.name("lnlxw"))[which(bin3==biostrat3[1,zone])],
-                                                eval(as.name("lnlxw"))[which(bin3==biostrat3[2,zone])],
+    test3_3[1,zone]<-with(m1.measures,bootstrap(eval(as.name("lnlxw"))[which(binMS==biostrat3[1,zone])],
+                                                eval(as.name("lnlxw"))[which(binMS==biostrat3[2,zone])],
                                                 metric="meandiff",replicates=replicates)$probability)
   }
 }
@@ -411,12 +387,12 @@ colnames(test4_1)<-paste(biostrat4[1,],"vs",biostrat4[2,])
 
 for (rows in 1:nrow(test4_1)){
   for (zone in 1:ncol(test4_1)){
-    if(with(c.data,eval(as.name(factors1[rows]))[which(bin4==biostrat4[1,zone])] %>% length) < minN|
-       with(c.data,eval(as.name(factors1[rows]))[which(bin4==biostrat4[2,zone])] %>% length) < minN){
+    if(with(c.data,eval(as.name(factors1[rows]))[which(binMin==biostrat4[1,zone])] %>% length) < minN|
+       with(c.data,eval(as.name(factors1[rows]))[which(binMin==biostrat4[2,zone])] %>% length) < minN){
       test4_1[rows,zone]<-NA #if sample sizes are too small, skip
     } else {
-      test4_1[rows,zone]<-with(c.data,bootstrap(eval(as.name(factors1[rows]))[which(bin4==biostrat4[1,zone])],
-                                                eval(as.name(factors1[rows]))[which(bin4==biostrat4[2,zone])],
+      test4_1[rows,zone]<-with(c.data,bootstrap(eval(as.name(factors1[rows]))[which(binMin==biostrat4[1,zone])],
+                                                eval(as.name(factors1[rows]))[which(binMin==biostrat4[2,zone])],
                                                 metric="meandiff",replicates=replicates)$probability)
       #the "eval(as.name("string")) comes from stackoverflow. Don't completely understand.
     }
@@ -429,12 +405,12 @@ colnames(test4_2)<-paste(biostrat4[1,],"vs",biostrat4[2,])
 
 for (rows in 1:nrow(test4_2)){
   for (zone in 1:ncol(test4_2)){
-    if(with(md.stat,eval(as.name(factors2[rows]))[which(bin4==biostrat4[1,zone])] %>% length) < minN|
-       with(md.stat,eval(as.name(factors2[rows]))[which(bin4==biostrat4[2,zone])] %>% length) < minN){
+    if(with(md.stat,eval(as.name(factors2[rows]))[which(binMin==biostrat4[1,zone])] %>% length) < minN|
+       with(md.stat,eval(as.name(factors2[rows]))[which(binMin==biostrat4[2,zone])] %>% length) < minN){
       test4_2[rows,zone]<-NA #if sample sizes are too small, skip
     } else {
-      test4_2[rows,zone]<-with(md.stat,bootstrap(eval(as.name(factors2[rows]))[which(bin4==biostrat4[1,zone])],
-                                            eval(as.name(factors2[rows]))[which(bin4==biostrat4[2,zone])],
+      test4_2[rows,zone]<-with(md.stat,bootstrap(eval(as.name(factors2[rows]))[which(binMin==biostrat4[1,zone])],
+                                            eval(as.name(factors2[rows]))[which(binMin==biostrat4[2,zone])],
                                             metric="meandiff",replicates=replicates)$probability)
       #the "eval(as.name("string")) comes from stackoverflow. Don't completely understand.
     }
@@ -446,12 +422,12 @@ test4_3<-matrix(NA,nrow=1,ncol=ncol(biostrat4))
 rownames(test4_3)<-"m1.lnlxw"
 colnames(test4_3)<-paste(biostrat4[1,],"vs",biostrat4[2,])
 for (zone in 1:ncol(test4_3)){
-  if(with(m1.measures,eval(as.name("lnlxw"))[which(bin4==biostrat4[1,zone])] %>% length) < minN|
-     with(m1.measures,eval(as.name("lnlxw"))[which(bin4==biostrat4[2,zone])] %>% length) < minN){
+  if(with(m1.measures,eval(as.name("lnlxw"))[which(binMin==biostrat4[1,zone])] %>% length) < minN|
+     with(m1.measures,eval(as.name("lnlxw"))[which(binMin==biostrat4[2,zone])] %>% length) < minN){
     test4_3[1,zone]<-NA #if sample sizes are too small, skip
   } else {
-    test4_3[1,zone]<-with(m1.measures,bootstrap(eval(as.name("lnlxw"))[which(bin4==biostrat4[1,zone])],
-                                                eval(as.name("lnlxw"))[which(bin4==biostrat4[2,zone])],
+    test4_3[1,zone]<-with(m1.measures,bootstrap(eval(as.name("lnlxw"))[which(binMin==biostrat4[1,zone])],
+                                                eval(as.name("lnlxw"))[which(binMin==biostrat4[2,zone])],
                                                 metric="meandiff",replicates=replicates)$probability)
   }
 }
@@ -471,13 +447,9 @@ if(position == "M/1"){
   write.csv(test2m2,paste(figure_out,"stats_fine.csv",sep=""))
 }
 
-#correct biozone results ------
+# correct within-PETM results ------
 m_resultsNA<-matrix(NA,5,5) #empty matrix
-rownames(m_resultsNA)<-colnames(m_resultsNA)<-c("Cf-3","Wa-M","Wa-0","Wa-1","Wa-2")
-
-#test
-# m_results[lower.tri(m_results,diag=FALSE)]<-colnames(test3_1)
-# m_results[upper.tri(m_results)]<-t(m_results)[upper.tri(m_results)]
+rownames(m_resultsNA)<-colnames(m_resultsNA)<-c("pre-PETM","early PETM","mid-PETM","late PETM","post-PETM")
 
 #No need for Colpocherus, only Wa-0 data
 #Macrocranion: m1.lnlxw and m2.canting angle
@@ -541,6 +513,72 @@ if(position == "M/2"){ #both Macrocranion and Talpavoides need cant
     write.csv(tal.w.l.m,paste(figure_out,"tal-w-l_corrected.csv",sep=""))
   }
 }
+# correct minimum binning results -------
+m_resultsNA<-matrix(NA,3,3) #empty matrix
+rownames(m_resultsNA)<-colnames(m_resultsNA)<-c("pre-PETM","PETM","post-PETM")
+
+#No need for Colpocherus, only Wa-0 data
+#Macrocranion: m1.lnlxw and m2.canting angle
+#Talpavoides: m1.lnlxw, m2.canting angle, trigonid height, talonid with, ic.hh,
+if(position == "M/1"){
+  m1.lnlxw.m<-m_resultsNA #copy empty matrix
+  m1.lnlxw.m[lower.tri(m1.lnlxw.m,diag=FALSE)]<-test4m1[which(rownames(test4m1)=="m1.lnlxw"),]
+  m1.lnlxw.m[upper.tri(m1.lnlxw.m)]<-t(m1.lnlxw.m)[upper.tri(m1.lnlxw.m)]
+  for (i in 1:ncol(m1.lnlxw.m)){
+    m1.lnlxw.m[,i]<-p.adjust(m1.lnlxw.m[,i],method="BH")
+  }
+  write.csv(m1.lnlxw.m,paste(figure_out,"lnlxw_corrected2.csv",sep=""))
+}
+if(position == "M/2"){ #both Macrocranion and Talpavoides need cant
+  cant.m<-m_resultsNA #copy empty matrix
+  cant.m[lower.tri(cant.m,diag=FALSE)]<-test4m2[which(rownames(test4m2)=="cant"),]
+  cant.m[upper.tri(cant.m)]<-t(cant.m)[upper.tri(cant.m)]
+  for (i in 1:ncol(cant.m)){
+    cant.m[,i]<-p.adjust(cant.m[,i],method="BH")
+  }
+  write.csv(cant.m,paste(figure_out,"cant_corrected2.csv",sep=""))
+  #also need RFI, DNE
+  RFI.m<-m_resultsNA #copy empty matrix
+  RFI.m[lower.tri(RFI.m,diag=FALSE)]<-test4m2[which(rownames(test4m2)=="RFI2"),]
+  RFI.m[upper.tri(RFI.m)]<-t(RFI.m)[upper.tri(RFI.m)]
+  for (i in 1:ncol(RFI.m)){
+    RFI.m[,i]<-p.adjust(RFI.m[,i],method="BH")
+  }
+  write.csv(RFI.m,paste(figure_out,"RFI_corrected2.csv",sep=""))
+  DNE.m<-m_resultsNA #copy empty matrix
+  DNE.m[lower.tri(DNE.m,diag=FALSE)]<-test4m2[which(rownames(test4m2)=="DNE2"),]
+  DNE.m[upper.tri(DNE.m)]<-t(DNE.m)[upper.tri(DNE.m)]
+  for (i in 1:ncol(DNE.m)){
+    DNE.m[,i]<-p.adjust(DNE.m[,i],method="BH")
+  }
+  write.csv(DNE.m,paste(figure_out,"DNE_corrected2.csv",sep=""))
+  if (taxon=="Talpavoides"){
+    #interconid distance between hypoconulid and hypoconid
+    ic.hh.l.m<-m_resultsNA #copy empty matrix
+    ic.hh.l.m[lower.tri(ic.hh.l.m,diag=FALSE)]<-test4m2[which(rownames(test4m2)=="ic.hh.l"),]
+    ic.hh.l.m[upper.tri(ic.hh.l.m)]<-t(ic.hh.l.m)[upper.tri(ic.hh.l.m)]
+    for (i in 1:ncol(ic.hh.l.m)){
+      ic.hh.l.m[,i]<-p.adjust(ic.hh.l.m[,i],method="BH")
+    }
+    write.csv(ic.hh.l.m,paste(figure_out,"ic-hh-l_corrected2.csv",sep=""))
+    #trigonid height
+    tri.h.l.m<-m_resultsNA #copy empty matrix
+    tri.h.l.m[lower.tri(tri.h.l.m,diag=FALSE)]<-test4m2[which(rownames(test4m2)=="tri.h.l"),]
+    tri.h.l.m[upper.tri(tri.h.l.m)]<-t(tri.h.l.m)[upper.tri(tri.h.l.m)]
+    for (i in 1:ncol(tri.h.l.m)){
+      tri.h.l.m[,i]<-p.adjust(tri.h.l.m[,i],method="BH")
+    }
+    write.csv(tri.h.l.m,paste(figure_out,"tri-h-l_corrected2.csv",sep=""))
+    #talonid width
+    tal.w.l.m<-m_resultsNA #copy empty matrix
+    tal.w.l.m[lower.tri(tal.w.l.m,diag=FALSE)]<-test4m2[which(rownames(test4m2)=="tal.w.l"),]
+    tal.w.l.m[upper.tri(tal.w.l.m)]<-t(tal.w.l.m)[upper.tri(tal.w.l.m)]
+    for (i in 1:ncol(tal.w.l.m)){
+      tal.w.l.m[,i]<-p.adjust(tal.w.l.m[,i],method="BH")
+    }
+    write.csv(tal.w.l.m,paste(figure_out,"tal-w-l_corrected2.csv",sep=""))
+  }
+}
 
 # PCA -----
 PCA.data<-cbind(PCAp$x[,PCs],md)
@@ -583,14 +621,14 @@ rgl.close()
 
 # describe mean shapes -------
 #use repeatable PCs only to describe differences between groups
-# CIE1<-which(md$bin4=="CIE")
-# CIE2<-which(md$bin4=="post-CIE")
+# CIE1<-which(md$binMin=="CIE")
+# CIE2<-which(md$binMin=="post-CIE")
 if (taxon=="Talpavoides"){ #the only one in Paleocene
-  cf3<-which(md$bin3=="Cf-3") #find relevant subset of specimens
+  cf3<-which(md$binMS=="Cf-3") #find relevant subset of specimens
   #predict shape from mean PC vals
   cf3_PC<-PC2shape(PCAp,cf3,c(PCs),colMeans(shapes)) %>% 
     matrix(.,ncol=molars$m,nrow=molars$k,byrow=TRUE) 
-  wa1<-which(md$bin3=="Wa-1")
+  wa1<-which(md$binMS=="Wa-1")
   wa1_PC<-PC2shape(PCAp,wa1,c(PCs),colMeans(shapes)) %>% 
     matrix(.,ncol=molars$m,nrow=molars$k,byrow=TRUE)
   
@@ -611,9 +649,9 @@ if (taxon=="Talpavoides"){ #the only one in Paleocene
 
 if (taxon!="Colpocherus"){
   #do same as for Cf-3 above, but for combinations of the first 3 Eocene biozones
-  wa0<-which(md$bin3=="Wa-0")
-  wa1<-which(md$bin3=="Wa-1")
-  wa2<-which(md$bin3=="Wa-2")
+  wa0<-which(md$binMS=="Wa-0")
+  wa1<-which(md$binMS=="Wa-1")
+  wa2<-which(md$binMS=="Wa-2")
   wa0_PC<-PC2shape(PCAp,wa0,c(PCs),colMeans(shapes)) %>% 
     matrix(.,ncol=molars$m,nrow=molars$k,byrow=TRUE)
   wa1_PC<-PC2shape(PCAp,wa1,c(PCs),colMeans(shapes)) %>% 
@@ -697,88 +735,14 @@ writePLY(paste(taxon,"_",pos,"_wa0m_emcolors.ply",sep=""),format="ascii",pointRa
   rgl.close()
 
 # stats for PLM shape -----
-testgdf<-geomorph.data.frame(coords=PCAp$x[,PCs],bin2=md$bin2,bin3=md$bin3,bin4=md$bin4)
+testgdf<-geomorph.data.frame(coords=PCAp$x[,PCs],bin2=md$bin2,binMS=md$binMS,binMin=md$binMin)
 if (taxon!="Colpocherus"){
-  testbin4<-advanced.procD.lm(coords~1,~bin4,data=testgdf,group=~bin4,iter=999,RRPP=TRUE)
-  testbin3<-advanced.procD.lm(coords~1,~bin3,data=testgdf,group=~bin3,iter=999,RRPP=TRUE)
+  testbinMin<-advanced.procD.lm(coords~1,~binMin,data=testgdf,group=~binMin,iter=999,RRPP=TRUE)
+  testbinMS<-advanced.procD.lm(coords~1,~binMS,data=testgdf,group=~binMS,iter=999,RRPP=TRUE)
 
-  write.csv(testbin3$P.means.dist,paste(figure_out,"_ProcANOVA_biozone.csv",sep=""))
-  write.csv(testbin4$P.means.dist,paste(figure_out,"_ProcANOVA_CIE.csv",sep=""))
+  write.csv(testbinMS$P.means.dist,paste(figure_out,"_ProcANOVA_biozone.csv",sep=""))
+  write.csv(testbinMin$P.means.dist,paste(figure_out,"_ProcANOVA_CIE.csv",sep=""))
 }
 
 testbin2<-advanced.procD.lm(coords~1,~bin2,data=testgdf,group=~bin2,iter=999,RRPP=TRUE)
 write.csv(testbin2$P.means.dist,paste(figure_out,"_ProcANOVA_inPETM.csv",sep=""))
-
-# between-group PCA -------
-#Between-group PCA, from Zelditch et al. workbook
-#compute grand mean
-grandMean<-t(colMeans(sh))
-#Subtract that grandmean from each row
-centered<-sweep(as.matrix(sh),2,grandMean,"-")
-#Calculate the group means
-species_means<-NULL
-for (i in 1:ncol(sh)){
-  if(taxon=="Macrocranion"){mean.temp<-tapply(centered[,i],md$bin3,mean)} #subdivide wa-0?
-  if(taxon=="Colpocherus"){mean.temp<-tapply(centered[,i],md$bin2,mean)} #subdivide wa-0?
-  species_means<-cbind(species_means,mean.temp)
-}
-#fix this next line to not use integers. Use a search term on row names instead.
-if (taxon=="Macrocranion"){
-  leaveout<-which(rownames(species_means)=="Cf-3"|rownames(species_means)=="Wa-M")
-  species_means<-species_means[-leaveout,]
-  } #cf-3, wa-m, contain 0 or too few specimens
-if (taxon=="Talpavoides"){} 
-if (taxon=="Colpocherus"){
-  leavein<-which(rownames(species_means)=="Wa-0 1"|rownames(species_means)=="Wa-0 2")
-  species_means<-species_means[leavein,]
-} #too few specimens in everything but Wa-0 1 and Wa-0 2
-
-#Get scores for all individuals on the eigenvectors of the PCA of means
-BGPCA<-prcomp(species_means)
-BGPCAproj<-centered%*%BGPCA$rotation #eigenvectors
-
-bgPCA.data<-cbind(BGPCAproj,md)
-ggplot(data=bgPCA.data, aes(x=PC1,y=PC2))+
-  geom_point(aes(fill=bin2,shape=bin2),alpha=0.9,size=4) +
-  xlab("bgPC 1") + ylab("bgPC 2") + ggtitle(taxon) +
-  scale_fill_manual(name="Bin",
-                    labels=levels(bins)[levels(bins) %in% unique(bgPCA.data$bin2)],
-                    values=bin.col[levels(bins) %in% unique(bgPCA.data$bin2)]) +
-  scale_shape_manual(name="Bin",
-                     labels=levels(bins)[levels(bins) %in% unique(bgPCA.data$bin2)],
-                     values=c(21,22,23,23,23,24,25)[levels(bins) %in% unique(bgPCA.data$bin2)])+
-  theme_classic() +
-  theme(text=element_text(size=20,family="Franklin Gothic Book"))
-
-# cairo_pdf(paste(figure_out,"bgPCA.pdf",sep=""),width=10,height=10,family="Franklin Gothic Book")
-# dev.off()
-# embedFonts(paste(figure_out,"bgPCA.pdf",sep=""))
-#quick save, not for publication
-ggsave(paste(figure_out,"bgPCA.jpg",sep=""))
-
-# bgPCA shapes ---------
-
-#make grandMean into a plot-able shape
-
-rainbowsbg1<-PCheat2(BGPCA,sh,pc=1,palette=ramp,alter="square",outlier=TRUE) #same settings as predicted shapes?
-rainbowsbg2<-PCheat2(BGPCA,sh,pc=2,palette=ramp,alter="square",outlier=TRUE) #same settings as predicted shapes?
-
-open3d() #plot bgPC1 max
-plot3d(rainbowsbg1[[1]]$pc1$max,axes=F,col=rainbowsbg1[[2]],size=10,xlab="",ylab="",zlab="")
-writePLY(paste(taxon,"_",pos,"_bgPC1_max.ply",sep=""),format="ascii",pointRadius=0.005)
-rgl.close()
-
-open3d() #plot bgPC1 min
-plot3d(rainbowsbg1[[1]]$pc1$min,axes=F,col=rainbowsbg1[[2]],size=10,xlab="",ylab="",zlab="")
-writePLY(paste(taxon,"_",pos,"_bgPC1_min.ply",sep=""),format="ascii",pointRadius=0.005)
-rgl.close()
-
-open3d() #plot bgPC max
-plot3d(rainbowsbg2[[1]]$pc2$max,axes=F,col=rainbowsbg2[[2]],size=10,xlab="",ylab="",zlab="")
-writePLY(paste(taxon,"_",pos,"_bgPC2_max.ply",sep=""),format="ascii",pointRadius=0.005)
-rgl.close()
-
-open3d() #plot bgPC min
-plot3d(rainbowsbg2[[1]]$pc2$min,axes=F,col=rainbowsbg2[[2]],size=10,xlab="",ylab="",zlab="")
-writePLY(paste(taxon,"_",pos,"_bgPC2_min.ply",sep=""),format="ascii",pointRadius=0.005)
-rgl.close()

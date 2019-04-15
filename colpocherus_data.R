@@ -1,5 +1,5 @@
 # read linear data ------
-source(paste(scriptsdir,"/BHB-erinaceomorph/erinaceomorph_load_linear.R",sep=""))
+source(paste(scriptsdir,"/PETM-erinaceomorphs/erinaceomorph_load_linear.R",sep=""))
 warnings()
 
 # #subset linear measurements relevant to taxon

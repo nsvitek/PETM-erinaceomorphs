@@ -1,5 +1,5 @@
 # read linear data ------
-source(paste(scriptsdir,"/BHB-erinaceomorph/erinaceomorph_load_linear.R",sep=""))
+source(paste(scriptsdir,"/PETM-erinaceomorphs/erinaceomorph_load_linear.R",sep=""))
 
 #subset linear measurements relevant to taxon
 metrics<-c("tri.w/length","tri.w/tal.w","heights","cant")
