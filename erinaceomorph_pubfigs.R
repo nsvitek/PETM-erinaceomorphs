@@ -64,7 +64,7 @@ md<-critters[which(critters$posthoc_pos==position),]
 md<-binsBHB(md,"meter_level")
 md<-bins.forMS(md)
 
-cairo_pdf(paste(figure_out,"RFI.pdf",sep=""),width=2.25,height=7/4,family="ArialMT")
+cairo_pdf(paste(figure_out,"RFI.pdf",sep=""),width=2.25,height=7/2,family="ArialMT")
 plot_linear(dataset=md,variable="RFI2",
             x_label="RFI",colors=bin.colMS,
             o18curve=FALSE)
@@ -74,7 +74,7 @@ dev.off()
 usnm<-md$specimen_number %>% grep("USNM.*",.,perl = TRUE)
 if(length(usnm)==0){md2<-md} else {md2<-md[-usnm,]}
 
-cairo_pdf(paste(figure_out,"DNE.pdf",sep=""),width=2.25,height=7/4,family="ArialMT")
+cairo_pdf(paste(figure_out,"DNE.pdf",sep=""),width=2.25,height=7/2,family="ArialMT")
 plot_linear(dataset=md2,variable="DNE2",
             x_label="DNE",colors=bin.colMS,
             o18curve=FALSE)
@@ -95,7 +95,7 @@ if (taxon == "Talpavoides"){
   x_label<-"RHHID" #relative hypoconid-hypoconulid intercusp distance
 }
 
-cairo_pdf(paste(figure_out,"2D.pdf",sep=""),width=2.25,height=7/4,family="ArialMT")
+cairo_pdf(paste(figure_out,"2D.pdf",sep=""),width=2.25,height=7/2,family="ArialMT")
 plot_linear(dataset=c.data,variable=variable,
             x_label=x_label,colors=bin.colMS,
             o18curve=FALSE)

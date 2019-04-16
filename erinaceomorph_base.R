@@ -3,16 +3,16 @@
 
 # #Spine of code to analyze species of Wa-0 erinaceomorphs of Bighorn Basin
 #Choose your own adventure. 
-# taxon<-"Macrocranion"
+taxon<-"Macrocranion"
 # taxon<-"Talpavoides"
-taxon<-"Colpocherus"
+# taxon<-"Colpocherus"
 
 # source dependencies -----
 #set file locations
-# scriptsdir <- "C://scripts"
-scriptsdir <- "C://cygwin/home/N.S/scripts"
-# datadir <- "D:/Dropbox/Documents/Dissertation/sys_eulipotyphla/lineage_data"
-datadir <- "C:/Users/N.S/Dropbox/Documents/Dissertation/sys_eulipotyphla/lineage_data"
+scriptsdir <- "C://scripts"
+# scriptsdir <- "C://cygwin/home/N.S/scripts"
+datadir <- "D:/Dropbox/Documents/Dissertation/sys_eulipotyphla/lineage_data"
+# datadir <- "C:/Users/N.S/Dropbox/Documents/Dissertation/sys_eulipotyphla/lineage_data"
 
 source(paste(scriptsdir,"/PETM-erinaceomorphs/erinaceomorph_dependencies.R",sep=""))
 
