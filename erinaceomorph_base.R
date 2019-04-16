@@ -9,10 +9,10 @@ taxon<-"Colpocherus"
 
 # source dependencies -----
 #set file locations
-scriptsdir <- "C://scripts"
-# scriptsdir <- "C://cygwin/home/N.S/scripts/scripts"
-datadir <- "D:/Dropbox/Documents/Dissertation/sys_eulipotyphla/lineage_data"
-# datadir <- "C:/Users/N.S/Dropbox/Documents/Dissertation/sys_eulipotyphla/lineage_data"
+# scriptsdir <- "C://scripts"
+scriptsdir <- "C://cygwin/home/N.S/scripts"
+# datadir <- "D:/Dropbox/Documents/Dissertation/sys_eulipotyphla/lineage_data"
+datadir <- "C:/Users/N.S/Dropbox/Documents/Dissertation/sys_eulipotyphla/lineage_data"
 
 source(paste(scriptsdir,"/PETM-erinaceomorphs/erinaceomorph_dependencies.R",sep=""))
 
@@ -735,14 +735,38 @@ writePLY(paste(taxon,"_",pos,"_wa0m_emcolors.ply",sep=""),format="ascii",pointRa
   rgl.close()
 
 # stats for PLM shape -----
-testgdf<-geomorph.data.frame(coords=PCAp$x[,PCs],bin2=md$bin2,binMS=md$binMS,binMin=md$binMin)
-if (taxon!="Colpocherus"){
-  testbinMin<-advanced.procD.lm(coords~1,~binMin,data=testgdf,group=~binMin,iter=999,RRPP=TRUE)
-  testbinMS<-advanced.procD.lm(coords~1,~binMS,data=testgdf,group=~binMS,iter=999,RRPP=TRUE)
+#pairwise 
+md2<-droplevels(md)
+for (i in levels(md2$binMS)){ #if only one specimen in group, drop it
+  if (length(which(md2$binMS==i))<=1){
+    md2$binMS[which(md2$binMS==i)]<-NA
+  }
+}
+PCAp.MS<-PCAp$x[!is.na(md2$binMS),PCs]
+md.MS<-md2$binMS[!is.na(md2$binMS)] %>% droplevels
+testgdf.MS<-geomorph.data.frame(coords=PCAp.MS,binMS=md.MS)
 
-  write.csv(testbinMS$P.means.dist,paste(figure_out,"_ProcANOVA_biozone.csv",sep=""))
-  write.csv(testbinMin$P.means.dist,paste(figure_out,"_ProcANOVA_CIE.csv",sep=""))
+fit1<-lm.rrpp(coords~1,data=testgdf.MS,iter=999)
+fit2<-lm.rrpp(coords~binMS,data=testgdf.MS,iter=999)
+testbinMS<-pairwise(fit2,fit.null=fit1,groups=md.MS) #
+sum1<-summary(testbinMS,confidence=0.95,test.type="dist")
+write.csv(sum1$pairwise.tables$P,paste(figure_out,"_ProcANOVA_inPETM.csv",sep=""))
+
+if (taxon!="Colpocherus"){
+  mdMin<-droplevels(md)
+  for (i in levels(mdMin$binMin)){ #if only one specimen in group, drop it
+    if (length(which(mdMin$binMin==i))<=1){
+      mdMin$binMin[which(mdMin$binMin==i)]<-NA
+    }
+  }
+  PCAp.Min<-PCAp$x[!is.na(mdMin$binMin),PCs]
+  md.Min<-mdMin$binMin[!is.na(mdMin$binMin)] %>% droplevels
+  testgdf.Min<-geomorph.data.frame(coords=PCAp.Min,binMin=md.Min)
+  
+  fit1<-lm.rrpp(coords~1,data=testgdf.Min,iter=999)
+  fit2<-lm.rrpp(coords~binMin,data=testgdf.Min,iter=999)
+  testbinMin<-pairwise(fit2,fit.null=fit1,groups=md.Min) #
+  sum2<-summary(testbinMin,confidence=0.95,test.type="dist")
+  write.csv(sum2$pairwise.tables$P,paste(figure_out,"_ProcANOVA_CIE.csv",sep=""))
 }
 
-testbin2<-advanced.procD.lm(coords~1,~bin2,data=testgdf,group=~bin2,iter=999,RRPP=TRUE)
-write.csv(testbin2$P.means.dist,paste(figure_out,"_ProcANOVA_inPETM.csv",sep=""))
