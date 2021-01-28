@@ -25,7 +25,7 @@ plot_linear<-function(dataset,variable,x_label,colors=bin.col,o18curve=FALSE){
     ggplot(data=dataset, aes_string(x="meter_level",y=variable,group="binMS"))+
       geom_vline(xintercept=14.45, linetype=2)+
       geom_vline(xintercept=46, linetype=2)+
-      geom_boxplot()+
+      geom_boxplot(orientation="x",outlier.alpha=0)+
       geom_point(aes(fill=binMS,shape=binMS),stroke=0.1,alpha=0.75,size=2) +
       scale_fill_manual(guide=FALSE,name="Bin", 
                         labels=levels(binsMS)[levels(binsMS) %in% unique(dataset$binMS)],
@@ -52,7 +52,22 @@ plot_linear(dataset=m1.measures[which(m1.measures$meter_level<=75),],
             x_label="ln(L x W)",colors=bin.colMS,
             o18curve=FALSE)
 dev.off()
+
+cairo_pdf(paste(figure_out,"length.pdf",sep=""),width=2.25,height=7/2,family="ArialMT")
+plot_linear(dataset=m1.measures[which(m1.measures$meter_level<=75),],
+            variable="length",
+            x_label="Length (mm)",colors=bin.colMS,
+            o18curve=FALSE)
+dev.off()
+
+cairo_pdf(paste(figure_out,"width.pdf",sep=""),width=2.25,height=7/2,family="ArialMT")
+plot_linear(dataset=m1.measures[which(m1.measures$meter_level<=75),],
+            variable="tal.w",
+            x_label="Width (mm)",colors=bin.colMS,
+            o18curve=FALSE)
+dev.off()
 # embedFonts(paste(figure_out,"lnlxw.pdf",sep=""))
+
 
 # make plots: dental metrics -----
 #now dental metric 

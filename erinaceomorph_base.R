@@ -3,8 +3,8 @@
 
 # #Spine of code to analyze species of Wa-0 erinaceomorphs of Bighorn Basin
 #Choose your own adventure. 
-taxon<-"Macrocranion"
-# taxon<-"Talpavoides"
+# taxon<-"Macrocranion"
+taxon<-"Talpavoides"
 # taxon<-"Colpocherus"
 
 # source dependencies -----
@@ -136,8 +136,8 @@ critters$posthoc_pos[which(critters$posthoc_pos=="M/2*")]<-"M/2"
 
 # subset data -------
 # #make position datasets
-# position<-"M/1"
 position<-"M/2"
+# position<-"M/1"
 if(position=="M/1"){pos="M-1"}else if (position=="M/2"){pos="M-2"}
 
 #create relevant data objects
@@ -183,6 +183,18 @@ if(position == "M/1"){
             x_label="ln(L x W)",colors=bin.col,
             o18curve=TRUE)
   ggsave(paste(figure_out,"lnlxw.jpg",sep=""))
+  
+  plot_linear(dataset=m1.measures,variable="length",
+              x_label="length",colors=bin.col,
+              o18curve=TRUE)
+  ggsave(paste(figure_out,"lnlxw.jpg",sep=""))
+  
+  
+  plot_linear(dataset=m1.measures,variable="tal.w",
+              x_label="width",colors=bin.col,
+              o18curve=TRUE)
+  ggsave(paste(figure_out,"lnlxw.jpg",sep=""))
+  
 }
 
 if(position == "M/2"){
@@ -238,7 +250,7 @@ if(position == "M/2"){
 
 # stats settings -----
 replicates<-1000
-minN<-1 #minimum number of samples necessary to compare a bin
+minN<-5 #minimum number of samples necessary to compare a bin
 #make combinations of bins
 biostrat2<-levels(c.data$bin2) %>% combn(.,2)
 biostrat3<-levels(c.data$binMS) %>% combn(.,2)
@@ -246,7 +258,7 @@ biostrat4<-levels(c.data$binMin) %>% combn(.,2)
 
 if (taxon=="Macrocranion"){
   #variables to test
-  factors1<-c("cant","lnlxw","heights","tri.w.l")
+  factors1<-c("cant","lnlxw","heights","tri.w.l","length","tal.w")
   factors2<-c("lncs","RFI2","DNE2")
   #remove unsuitable specimens: USNM538323.2 for DNE
   md.stat<-md
@@ -255,12 +267,12 @@ if (taxon=="Macrocranion"){
 }
 if (taxon=="Talpavoides"){
   factors1<-c("lnlxw","tal.w.l","tri.h.l","ic.hh.l",
-              "met.w.tri","ento.l.l","cant")
+              "met.w.tri","ento.l.l","cant","length","tal.w")
   factors2<-c("lncs","RFI2","DNE2")
   md.stat<-md
 } 
 if (taxon=="Colpocherus"){
-  factors1<-c("lnlxw","ic.me.l","met.l.l","met.w.l")
+  factors1<-c("lnlxw","ic.me.l","met.l.l","met.w.l","length","tal.w")
   factors2<-c("lncs","RFI2","DNE2")
   #any outliers?
   #CAB14-0668, UF284224 in RFI, CAB14-1021 weirdly low DNE
@@ -308,8 +320,8 @@ for (rows in 1:nrow(test2_2)){
   }
 }
 
-test2_3<-matrix(NA,nrow=1,ncol=ncol(biostrat2))
-rownames(test2_3)<-"m1.lnlxw"
+test2_3<-matrix(NA,nrow=3,ncol=ncol(biostrat2))
+rownames(test2_3)<-c("m1.lnlxw","m1.length","m1.width")
 colnames(test2_3)<-paste(biostrat2[1,],"vs",biostrat2[2,])
 for (zone in 1:ncol(test2_3)){
   if(with(m1.measures,eval(as.name("lnlxw"))[which(bin2==biostrat2[1,zone])] %>% length) < minN|
@@ -320,10 +332,28 @@ for (zone in 1:ncol(test2_3)){
                             eval(as.name("lnlxw"))[which(bin2==biostrat2[2,zone])],
                             metric="meandiff",replicates=replicates)$probability)
   }
+  if(with(m1.measures,eval(as.name("length"))[which(bin2==biostrat2[1,zone])] %>% length) < minN|
+     with(m1.measures,eval(as.name("length"))[which(bin2==biostrat2[2,zone])] %>% length) < minN){
+    test2_3[2,zone]<-NA #if sample sizes are too small, skip
+  } else {
+    test2_3[2,zone]<-with(m1.measures,bootstrap(eval(as.name("length"))[which(bin2==biostrat2[1,zone])],
+                                                eval(as.name("length"))[which(bin2==biostrat2[2,zone])],
+                                                metric="meandiff",replicates=replicates)$probability)
+  }
+  if(with(m1.measures,eval(as.name("tal.w"))[which(bin2==biostrat2[1,zone])] %>% length) < minN|
+     with(m1.measures,eval(as.name("tal.w"))[which(bin2==biostrat2[2,zone])] %>% length) < minN){
+    test2_3[3,zone]<-NA #if sample sizes are too small, skip
+  } else {
+    test2_3[3,zone]<-with(m1.measures,bootstrap(eval(as.name("tal.w"))[which(bin2==biostrat2[1,zone])],
+                                                eval(as.name("tal.w"))[which(bin2==biostrat2[2,zone])],
+                                                metric="meandiff",replicates=replicates)$probability)
+  }
+  
 }
 
 test2m2<-rbind(test2_1,test2_2)
 test2m1<-rbind(test2_2,test2_3)
+
 # stats: medium ------
 #test for pairwise differences in crown area by bin
 test3_1<-matrix(NA,nrow=length(factors1),ncol=ncol(biostrat3))
@@ -362,8 +392,8 @@ for (rows in 1:nrow(test3_2)){
   }
 }
 
-test3_3<-matrix(NA,nrow=1,ncol=ncol(biostrat3))
-rownames(test3_3)<-"m1.lnlxw"
+test3_3<-matrix(NA,nrow=3,ncol=ncol(biostrat3))
+rownames(test3_3)<-c("m1.lnlxw","m1.length","m1.width")
 colnames(test3_3)<-paste(biostrat3[1,],"vs",biostrat3[2,])
 for (zone in 1:ncol(test3_3)){
   if(with(m1.measures,eval(as.name("lnlxw"))[which(binMS==biostrat3[1,zone])] %>% length) < minN|
@@ -374,7 +404,27 @@ for (zone in 1:ncol(test3_3)){
                                                 eval(as.name("lnlxw"))[which(binMS==biostrat3[2,zone])],
                                                 metric="meandiff",replicates=replicates)$probability)
   }
+  
+  if(with(m1.measures,eval(as.name("length"))[which(binMS==biostrat3[1,zone])] %>% length) < minN|
+     with(m1.measures,eval(as.name("length"))[which(binMS==biostrat3[2,zone])] %>% length) < minN){
+    test3_3[2,zone]<-NA #if sample sizes are too small, skip
+  } else {
+    test3_3[2,zone]<-with(m1.measures,bootstrap(eval(as.name("length"))[which(binMS==biostrat3[1,zone])],
+                                                eval(as.name("length"))[which(binMS==biostrat3[2,zone])],
+                                                metric="meandiff",replicates=replicates)$probability)
+  }
+  
+  if(with(m1.measures,eval(as.name("tal.w"))[which(binMS==biostrat3[1,zone])] %>% length) < minN|
+     with(m1.measures,eval(as.name("tal.w"))[which(binMS==biostrat3[2,zone])] %>% length) < minN){
+    test3_3[3,zone]<-NA #if sample sizes are too small, skip
+  } else {
+    test3_3[3,zone]<-with(m1.measures,bootstrap(eval(as.name("tal.w"))[which(binMS==biostrat3[1,zone])],
+                                                eval(as.name("tal.w"))[which(binMS==biostrat3[2,zone])],
+                                                metric="meandiff",replicates=replicates)$probability)
+  }
+  
 }
+
 
 test3m2<-rbind(test3_1,test3_2)
 test3m1<-rbind(test3_2,test3_3)
@@ -418,8 +468,8 @@ for (rows in 1:nrow(test4_2)){
 }
 
 
-test4_3<-matrix(NA,nrow=1,ncol=ncol(biostrat4))
-rownames(test4_3)<-"m1.lnlxw"
+test4_3<-matrix(NA,nrow=3,ncol=ncol(biostrat4))
+rownames(test4_3)<-c("m1.lnlxw","m1.length","m1.width")
 colnames(test4_3)<-paste(biostrat4[1,],"vs",biostrat4[2,])
 for (zone in 1:ncol(test4_3)){
   if(with(m1.measures,eval(as.name("lnlxw"))[which(binMin==biostrat4[1,zone])] %>% length) < minN|
@@ -430,6 +480,23 @@ for (zone in 1:ncol(test4_3)){
                                                 eval(as.name("lnlxw"))[which(binMin==biostrat4[2,zone])],
                                                 metric="meandiff",replicates=replicates)$probability)
   }
+  if(with(m1.measures,eval(as.name("length"))[which(binMin==biostrat4[1,zone])] %>% length) < minN|
+     with(m1.measures,eval(as.name("length"))[which(binMin==biostrat4[2,zone])] %>% length) < minN){
+    test4_3[2,zone]<-NA #if sample sizes are too small, skip
+  } else {
+    test4_3[2,zone]<-with(m1.measures,bootstrap(eval(as.name("length"))[which(binMin==biostrat4[1,zone])],
+                                                eval(as.name("length"))[which(binMin==biostrat4[2,zone])],
+                                                metric="meandiff",replicates=replicates)$probability)
+  }
+  if(with(m1.measures,eval(as.name("tal.w"))[which(binMin==biostrat4[1,zone])] %>% length) < minN|
+     with(m1.measures,eval(as.name("tal.w"))[which(binMin==biostrat4[2,zone])] %>% length) < minN){
+    test4_3[3,zone]<-NA #if sample sizes are too small, skip
+  } else {
+    test4_3[3,zone]<-with(m1.measures,bootstrap(eval(as.name("tal.w"))[which(binMin==biostrat4[1,zone])],
+                                                eval(as.name("tal.w"))[which(binMin==biostrat4[2,zone])],
+                                                metric="meandiff",replicates=replicates)$probability)
+  }
+  
 }
 
 test4m2<-rbind(test4_1,test4_2)
@@ -452,8 +519,8 @@ m_resultsNA<-matrix(NA,5,5) #empty matrix
 rownames(m_resultsNA)<-colnames(m_resultsNA)<-c("pre-PETM","early PETM","mid-PETM","late PETM","post-PETM")
 
 #No need for Colpocherus, only Wa-0 data
-#Macrocranion: m1.lnlxw and m2.canting angle
-#Talpavoides: m1.lnlxw, m2.canting angle, trigonid height, talonid with, ic.hh,
+#Macrocranion: m1.lnlxw and m2.canting angle, plus length and width metrics
+#Talpavoides: m1.lnlxw, m2.canting angle, trigonid height, talonid with, ic.hh, plus length and width metrics
 if(position == "M/1"){
   m1.lnlxw.m<-m_resultsNA #copy empty matrix
   m1.lnlxw.m[lower.tri(m1.lnlxw.m,diag=FALSE)]<-test3m1[which(rownames(test3m1)=="m1.lnlxw"),]
@@ -462,6 +529,22 @@ if(position == "M/1"){
     m1.lnlxw.m[,i]<-p.adjust(m1.lnlxw.m[,i],method="BH")
   }
   write.csv(m1.lnlxw.m,paste(figure_out,"lnlxw_corrected.csv",sep=""))
+  
+  m1.length.m<-m_resultsNA #copy empty matrix
+  m1.length.m[lower.tri(m1.length.m,diag=FALSE)]<-test3m1[which(rownames(test3m1)=="m1.length"),]
+  m1.length.m[upper.tri(m1.length.m)]<-t(m1.length.m)[upper.tri(m1.length.m)]
+  for (i in 1:ncol(m1.length.m)){
+    m1.length.m[,i]<-p.adjust(m1.length.m[,i],method="BH")
+  }
+  write.csv(m1.length.m,paste(figure_out,"length_corrected.csv",sep=""))
+  
+  m1.width.m<-m_resultsNA #copy empty matrix
+  m1.width.m[lower.tri(m1.width.m,diag=FALSE)]<-test3m1[which(rownames(test3m1)=="m1.width"),]
+  m1.width.m[upper.tri(m1.width.m)]<-t(m1.width.m)[upper.tri(m1.width.m)]
+  for (i in 1:ncol(m1.width.m)){
+    m1.width.m[,i]<-p.adjust(m1.width.m[,i],method="BH")
+  }
+  write.csv(m1.width.m,paste(figure_out,"width_corrected.csv",sep=""))
 }
 if(position == "M/2"){ #both Macrocranion and Talpavoides need cant
   cant.m<-m_resultsNA #copy empty matrix
@@ -528,6 +611,23 @@ if(position == "M/1"){
     m1.lnlxw.m[,i]<-p.adjust(m1.lnlxw.m[,i],method="BH")
   }
   write.csv(m1.lnlxw.m,paste(figure_out,"lnlxw_corrected2.csv",sep=""))
+  
+  m1.length.m<-m_resultsNA #copy empty matrix
+  m1.length.m[lower.tri(m1.length.m,diag=FALSE)]<-test4m1[which(rownames(test4m1)=="m1.length"),]
+  m1.length.m[upper.tri(m1.length.m)]<-t(m1.length.m)[upper.tri(m1.length.m)]
+  for (i in 1:ncol(m1.length.m)){
+    m1.length.m[,i]<-p.adjust(m1.length.m[,i],method="BH")
+  }
+  write.csv(m1.length.m,paste(figure_out,"length_corrected2.csv",sep=""))
+  
+  m1.width.m<-m_resultsNA #copy empty matrix
+  m1.width.m[lower.tri(m1.width.m,diag=FALSE)]<-test4m1[which(rownames(test4m1)=="m1.width"),]
+  m1.width.m[upper.tri(m1.width.m)]<-t(m1.width.m)[upper.tri(m1.width.m)]
+  for (i in 1:ncol(m1.width.m)){
+    m1.width.m[,i]<-p.adjust(m1.width.m[,i],method="BH")
+  }
+  write.csv(m1.length.m,paste(figure_out,"width_corrected2.csv",sep=""))
+  
 }
 if(position == "M/2"){ #both Macrocranion and Talpavoides need cant
   cant.m<-m_resultsNA #copy empty matrix
