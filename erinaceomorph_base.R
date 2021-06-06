@@ -17,10 +17,7 @@ datadir <- "D:/Dropbox/Documents/Dissertation/sys_eulipotyphla/lineage_data"
 source(paste(scriptsdir,"/PETM-erinaceomorphs/erinaceomorph_dependencies.R",sep=""))
 
 # read shape data -----
-if (taxon=="Macrocranion"){
-  shapedir<-"macrocranion_p_10k_18-02-09_2048"
-  shapedir2<-"macrocranion_pc_18-02-10_2048"
-}
+if (taxon=="Macrocranion"){shapedir<-"macrocranion_p_10k_18-02-09_2048"}
 if (taxon=="Talpavoides"){shapedir<-"talpavoides_p_10k_18-04-02_2048"}
 if (taxon=="Colpocherus"){shapedir<-"colpocherus_p_10k_18-03-05_2048"}
 
